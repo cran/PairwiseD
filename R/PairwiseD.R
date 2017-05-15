@@ -182,7 +182,6 @@ pairwised<-function( data, measure = c("sum", "sumabs", "absdiff", "diffabs", "p
       save.as= tolower( paste( save.as, ".xlsx",sep="") )
       cat( paste( "\n saving result to: ", save.as, sep="") )
       xlsx::write.xlsx(x=aResult, file = path.expand( save.as ) )
-      detach( package:xlsx)
 
     } else if (  regexpr( ".CSV", toupper( save.as ) ) > 0 ) {
       #CSV file
@@ -191,7 +190,7 @@ pairwised<-function( data, measure = c("sum", "sumabs", "absdiff", "diffabs", "p
     }
 
     if ( !no.messages ) {
-      cat( paste("Result of pairwised() is saved in ",save.as,".",sep="") )
+      cat( paste("\n Result of pairwised() is saved in ",save.as,".",sep="") )
     }
   }
 
@@ -209,7 +208,7 @@ pairwised<-function( data, measure = c("sum", "sumabs", "absdiff", "diffabs", "p
 #'              "abssddiff",  "absvarcoefdiff", "custom"),  period.length="FULL",
 #'              exp.multiplier = 0, multiplier = 1, no.messages = FALSE,
 #'              save.as = NULL,
-#'              sep=";", dec="," )
+#'              sep=";", dec=",", overlap=TRUE )
 #'
 #' @param data a data.frame, list or path to the input file in csv, xlsx or xls format.
 #' @param measure operation that should be applied to every pair of time ordered vectors of observations. Built in                 options contains (z denotes first observation vector and g denotes the second observation):
@@ -234,6 +233,10 @@ pairwised<-function( data, measure = c("sum", "sumabs", "absdiff", "diffabs", "p
 #' @param save.as in this argument, user can specify: path for the destination folder, name of the file and desired format. Argument is given in the following form: "path/name.format". For example: "C:/Myfiles/Rfiles/pairwised_data.csv". If the argument is not specified default is set as "current R directory/name_of_the_input_file_paiwise_result.format_of_input_file". User can specify csv, xls and xlsx as the output format. If user does not specify the file format, the format will be the same as of the input format or xlsx in the case of data.frame/list input. If argument is equal to "none", output file is not generated.
 #' @param sep symbol to be used for values separator in the input csv file (used if input file is set to be a csv file only). Default value is ";"
 #' @param dec symbol to be used for decimal separator in the input file. Default value is ","
+#' @param overlap  default is set at TRUE. If TRUE then values of the measures are calculated for overlapping moving
+#'        windows trough time(ex. 1991-2005, 1992-2006,1993-2007,...etc.).FALSE can be set only if period.length
+#'        is lower than FULL.In this instance function will be calculating measures only for non-overlaping
+#'        windows (1991-1995,1996-2000,2001-2006,...etc.), which length is indicated in the parameter period.length.
 #'
 #' @return function returns its result as data.frame object.
 #'
@@ -243,16 +246,13 @@ pairwised<-function( data, measure = c("sum", "sumabs", "absdiff", "diffabs", "p
 #'              save.as = "GDPgrowthRESULTS.csv")
 ######################################################################################################################################
 #' @export
-pairwised2<-function( data, measure = c("cor", "cov", "absmeandiff", "diffabs", "absvardiff", "abssddiff",  "absvarcoefdiff", "custom"), period.length = "FULL", exp.multiplier= 0, multiplier= 1, no.messages = FALSE, save.as = NULL, sep=";", dec=",") {
+pairwised2<-function( data, measure = c("cor", "cov", "absmeandiff", "diffabs", "absvardiff", "abssddiff",  "absvarcoefdiff", "custom"), period.length = "FULL", exp.multiplier= 0, multiplier= 1, no.messages = FALSE, save.as = NULL, sep=";", dec=",", overlap =TRUE) {
   if (typeof(data) == "character" ){
     if (as.logical(regexpr( ".XLS", toupper(data)) == 0)) {
       #Excel file
-      if ( "package:xlsx" %in% search() ) {
-        detach(package:xlsx)
-      }
       aData <- openxlsx::read.xlsx( xlsxFile=data, sheet =  1)
 
-            if ( is.null( save.as ) ) {
+      if ( is.null( save.as ) ) {
         save.as= gsub(".XLSX","", toupper( data ) )
         save.as= gsub(".XLS","", save.as )
         save.as= gsub( " ","_", save.as )
@@ -311,7 +311,6 @@ pairwised2<-function( data, measure = c("cor", "cov", "absmeandiff", "diffabs", 
   }
 
   aPeriods = unlist( aData[ 1 ] )
-  # usuniDcie ewentualnych pustych
   aPeriods = aPeriods[ !is.na(aPeriods ) ]
 
   if (is.null( period.length) || toupper( period.length ) == "FULL" ){
@@ -324,12 +323,14 @@ pairwised2<-function( data, measure = c("cor", "cov", "absmeandiff", "diffabs", 
   aCombnList <- combn( aItems, 2 )
   nLast<- length( aCombnList ) / 2
   oProgressbar = txtProgressBar( 0, length( aPeriods  ) * nLast )
+  nI1 = 1
+  while (nI1 <= length(aPeriods))
+  {
 
-  for ( nI1 in 1:length(aPeriods)  ) {
     for ( nI2 in 1:nLast) {
       sPeriod <- aPeriods[ nI1 ]
 
-      if ( nI1 <= length(aPeriods) - period.length + 1  ){
+      if ( nI1 <= length(aPeriods) - period.length + 1 ){
         aSubResult<- c( period=paste( aPeriods[nI1],aPeriods[min( nI1 + period.length - 1 , length( aPeriods ) )] ,sep="-"),ID=paste( aCombnList[1,nI2],aCombnList[2,nI2] ,sep="-"))
         z <- as.numeric( chartr(",",".", as.vector( eval(parse(text = paste( "aData$",aCombnList[,nI2][1],"[",nI1,":",min( nI1 + period.length, length( aPeriods ) ),"]" , sep="") ) ) ) ) ) * 10^exp.multiplier * multiplier
         g <- as.numeric( chartr(",",".", as.vector( eval(parse(text = paste( "aData$",aCombnList[,nI2][2],"[",nI1,":",min( nI1 + period.length, length( aPeriods ) ),"]" , sep="") ) ) ) ) ) * 10^exp.multiplier * multiplier
@@ -342,8 +343,16 @@ pairwised2<-function( data, measure = c("cor", "cov", "absmeandiff", "diffabs", 
       }
       nCounter = nCounter + 1
       setTxtProgressBar( oProgressbar, nCounter)
+
     }
+
+    if ( ! overlap && ! period.length == "FULL" ) {
+      nI1 = nI1 + period.length }
+    else {
+      nI1 = nI1 + 1 }
+
   }
+
   aResult= do.call( rbind.data.frame, aResult )
   colnames( aResult)[[1]]<- "period"
   colnames( aResult)[[2]]<- "identification"
@@ -369,10 +378,11 @@ pairwised2<-function( data, measure = c("cor", "cov", "absmeandiff", "diffabs", 
     }
 
     if ( !no.messages ) {
-      cat( paste("Result of pairwised2() is saved in ",save.as,".",sep="") )
+      cat( paste("\n Result of pairwised2() is saved in ",save.as,".",sep="") )
     }
   }
 
   return( aResult )
 }
+
 

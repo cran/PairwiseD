@@ -8,7 +8,7 @@ pairwised2(data, measure = c("cor", "cov", "absmeandiff", "diffabs", "absvardiff
              "abssddiff",  "absvarcoefdiff", "custom"),  period.length="FULL",
              exp.multiplier = 0, multiplier = 1, no.messages = FALSE,
              save.as = NULL,
-             sep=";", dec="," )
+             sep=";", dec=",", overlap=TRUE )
 }
 \arguments{
 \item{data}{a data.frame, list or path to the input file in csv, xlsx or xls format.}
@@ -42,6 +42,11 @@ calculations, destination file, potential error and wrong format of the input fi
 \item{sep}{symbol to be used for values separator in the input csv file (used if input file is set to be a csv file only). Default value is ";"}
 
 \item{dec}{symbol to be used for decimal separator in the input file. Default value is ","}
+
+\item{overlap}{default is set at TRUE. If TRUE then values of the measures are calculated for overlapping moving
+windows trough time(ex. 1991-2005, 1992-2006,1993-2007,...etc.).FALSE can be set only if period.length
+is lower than FULL.In this instance function will be calculating measures only for non-overlaping
+windows (1991-1995,1996-2000,2001-2006,...etc.), which length is indicated in the parameter period.length.}
 }
 \value{
 function returns its result as data.frame object.

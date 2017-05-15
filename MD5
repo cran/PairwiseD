@@ -1,9 +1,9 @@
-c95171c730358e414140c4b83d604304 *DESCRIPTION
+c244b5187dbe034b396170cd685576e4 *DESCRIPTION
 9f54d77019e6b3b15106b4efecb04283 *NAMESPACE
-305df605f37776437d4596ab3e72d0b9 *R/PairwiseD.R
+6e76bbb1e3f8d7b17fc54d77e19418bd *R/PairwiseD.R
 77867acf0e332857fc02e290eeded948 *data/GDPgrowth.tab.gz
 d7d945ffbe32ba5839425817bb2acdba *data/RGDPpc.tab.gz
 427e63ea1fa4973e8a9afa0b92ebc453 *man/GDPgrowth.Rd
 0cebd8b765f542d032f9a122840c2f17 *man/RGDPpc.Rd
 1891fec3a0a5e21920ef15ec6dabe917 *man/pairwised.Rd
-c8f8484af5fb45cfc446e4808bc2241f *man/pairwised2.Rd
+49f4f75c972b9102720436d6b5a0a4db *man/pairwised2.Rd
